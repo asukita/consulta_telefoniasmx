@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Consulta de líneas telefónicas — México</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f4; --bg3: #eeeeec;
+    --text: #1a1a18; --text2: #6b6b67; --text3: #9e9e9a;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --green-bg: #eaf3de; --green-border: #639922; --green-text: #3b6d11;
+    --blue-bg: #e6f1fb; --blue-text: #185fa5;
+    --amber-bg: #faeeda; --amber-text: #854f0b;
+    --r: 8px; --rl: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e1c; --bg2: #2a2a28; --bg3: #333331;
+      --text: #f0f0ec; --text2: #a0a09c; --text3: #6e6e6a;
+      --border: rgba(255,255,255,0.12); --border2: rgba(255,255,255,0.22);
+      --green-bg: #173404; --green-border: #639922; --green-text: #c0dd97;
+      --blue-bg: #042c53; --blue-text: #85b7eb;
+      --amber-bg: #412402; --amber-text: #fac775;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; padding: 1.5rem 1rem; }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .sub { font-size: 14px; color: var(--text2); margin-bottom: 1.5rem; }
+  .stats { display: flex; gap: 10px; margin-bottom: 1.25rem; }
+  .stat { flex: 1; background: var(--bg); border-radius: var(--r); padding: 10px 14px; border: 0.5px solid var(--border); }
+  .stat-n { font-size: 22px; font-weight: 500; }
+  .stat-n.g { color: var(--green-text); }
+  .stat-n.a { color: var(--amber-text); }
+  .stat-l { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filters button { font-size: 12px; padding: 5px 13px; border-radius: 20px; border: 0.5px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; }
+  .filters button.on { background: var(--text); color: var(--bg); border-color: transparent; }
+  .search { width: 100%; font-size: 13px; padding: 8px 12px; border-radius: var(--r); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; outline: none; margin-bottom: 1rem; }
+  .search:focus { border-color: var(--text2); }
+  .list { display: flex; flex-direction: column; gap: 6px; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--rl); padding: 11px 14px; display: flex; align-items: center; gap: 10px; transition: opacity 0.3s; }
+  .card.chk { border-color: var(--green-border); background: var(--green-bg); }
+  .card.fade { opacity: 0.3; }
+  input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--green-border); cursor: pointer; flex-shrink: 0; }
+  .info { flex: 1; min-width: 0; }
+  .main { font-size: 14px; font-weight: 500; }
+  .subs { font-size: 12px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .plat { font-size: 10px; color: var(--text3); font-family: monospace; margin-top: 3px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
+  .bp { background: var(--amber-bg); color: var(--amber-text); }
+  .bg { background: var(--blue-bg); color: var(--blue-text); }
+  .bs { background: var(--bg2); color: var(--text3); }
+  .link { font-size: 12px; padding: 6px 11px; border-radius: var(--r); border: 0.5px solid var(--border2); background: transparent; color: var(--text); text-decoration: none; white-space: nowrap; flex-shrink: 0; font-family: inherit; }
+  .link:hover { background: var(--bg2); }
+  .empty { text-align: center; padding: 2rem; color: var(--text2); font-size: 14px; }
+  .note { font-size: 12px; color: var(--text2); margin-top: 1rem; padding-top: 1rem; border-top: 0.5px solid var(--border); line-height: 1.6; }
+  .saved { font-size: 11px; color: var(--green-text); margin-top: 6px; min-height: 16px; }
+  .reset { margin-top: 6px; font-size: 12px; color: var(--text3); background: none; border: none; cursor: pointer; text-decoration: underline; font-family: inherit; padding: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Consulta de líneas telefónicas</h1>
+  <p class="sub">Verifica qué compañías tienen líneas registradas a tu nombre en México</p>
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="sT">0</div><div class="stat-l">Portales</div></div>
+    <div class="stat"><div class="stat-n g" id="sR">0</div><div class="stat-l">Revisados</div></div>
+    <div class="stat"><div class="stat-n a" id="sP">0</div><div class="stat-l">Pendientes</div></div>
+  </div>
+  <div class="filters">
+    <button onclick="sf('todas',this)">Todas</button>
+    <button onclick="sf('populares',this)">Populares</button>
+    <button class="on" onclick="sf('pendientes',this)">Pendientes</button>
+    <button onclick="sf('revisadas',this)">Revisadas</button>
+  </div>
+  <input class="search" id="q" type="text" placeholder="Buscar operadora..." oninput="render()" />
+  <div class="list" id="list"></div>
+  <p class="note">Las operadoras agrupadas comparten portal — una sola visita cubre todas las del grupo. Tu progreso se guarda automáticamente en este navegador.</p>
+  <div class="saved" id="sv"></div>
+  <button class="reset" onclick="rst()">Borrar progreso guardado</button>
+</div>
+<script>
+const G=[
+  {n:["Telcel"],u:"https://registro.telcel.com/vinculatulinea",pop:1},
+  {n:["AT&T","Unefon","WIM"],u:"https://www.att.com.mx/vinculartulinea/",pop:1},
+  {n:["Movistar"],u:"https://www.movistar.com.mx/vinculatulinea",pop:1},
+  {n:["Bait (Walmart)"],u:"https://btz.mx/registra",pop:1},
+  {n:["Virgin Mobile"],u:"https://virginmobile.mx/vinculatulinea",pop:1},
+  {n:["Izzi"],u:"https://www.izzi.mx/login",pop:1},
+  {n:["Sky"],u:"https://misky.sky.com.mx",pop:1},
+  {n:["OXXO CEL"],u:"https://vinculatulinea.com/Oxxocel",pop:1},
+  {n:["Altán Redes — plataforma compartida","2y2x","AI Telecomm","Abafon","Abix","Addinteli","Appcel","Axios Mobile","Awan / IPB","BienCel","Bigcel","Bromovil","CFE Internet","Chip Macropay","Chuliphone","Comunicaciones Green","Conecta2","Conectacel México","Conec-Rural / IPB","Cool Mobile","Diré Móvil","ENI Networks","Fangio Mobile","Fibracell","FRC Mobile","Gane","Gamers","Glovo Telecom","Gmovil","Grupo Inten","Hashtag","I AM Abundance","Inbtel","Interlinked","Inphonity","Inxel","Iusatel","Jrmovil","Kolors","Likephone / X-Cel","Maifon","Maya Móvil","México Móvil","Mexfon","Mi Móvil","MobileArionet","Móvil para Todos","Nabi","Netmas","Netwey","Ocean Móvil","On-Link","Orange / IPB","Othisi Mobile","Pagacel","Pantera Mobile / IPB","Pillofon","Playcell","Red Blak","Red Dog","Red Potencia","Red Potencia / IPB","Rex Móvil","Rincel","Secure Witness","Sfon","Skycel","Spot 1","Starline","Telgen","Telmovil","Telefónica Luna","Teracel","TIC-OMV","TurboCel","Turbored","Turbored / IPB","Ultracel","Ultracel / IPB","Valor Telecomm","Vasanta","VivaMX","Wiicel","Wiki Katat","Wimotelecom"],u:"https://rnu.altanredes.com/consulta",p:"rnu.altanredes.com/consulta",big:1},
+  {n:["Dua","Fedego!","Diri Móvil","Flash Mobile"],u:"https://consulta.logisticaacn.mx/",p:"consulta.logisticaacn.mx"},
+  {n:["Grupo Bitelit"],u:"https://rnu.grupobitelit.com/mx/line-status",p:"rnu.grupobitelit.com"},
+  {n:["Link Móvil"],u:"https://movil.linkteconectamos.com/consultar-vinculacion/",p:"linkteconectamos.com"},
+  {n:["Mirlo"],u:"https://mirlo.com/vinculatulinea",p:"mirlo.com"},
+  {n:["MoBig","Movired"],u:"https://www.mobig.mx/vinculatulinea/consulta-curp",p:"mobig.mx"},
+  {n:["MoBig / IPB"],u:"https://femaseisa.com/vinculatulinea/consulta-curp",p:"femaseisa.com"},
+  {n:["Newww"],u:"https://consultavinculacion.newww.mx/",p:"newww.mx"},
+  {n:["Oxio"],u:"https://verificar.oxiomobile.com/consultatuslineas",p:"oxiomobile.com"},
+  {n:["Red Aguila"],u:"https://consultavinculacion.redaguila.com.mx/",p:"redaguila.com.mx"},
+  {n:["Sorcel"],u:"https://www.soriup.mx/consultavinculacion.html",p:"soriup.mx"},
+  {n:["Tokamóvil"],u:"https://tokamovil.mx/cumplimiento/consulta-vinculacion/",p:"tokamovil.mx"},
+  {n:["Viasat"],u:"https://viasatprepago.com.mx/vinculatulinea/",p:"viasatprepago.com.mx"},
+  {n:["Abib","Abib / IPB"],u:"https://www.abib.mx/vinculatulinea",p:"abib.mx"},
+  {n:["AhorroCel"],u:"https://vinculatulinea.com/Ahorrocel",p:"vinculatulinea.com"},
+  {n:["Alestra Móvil"],u:"https://www.alestramovil.mx/vinculatulinea",p:"alestramovil.mx"},
+  {n:["ALLCE"],u:"https://vinculacion.allce.mx/vinculatulinea",p:"allce.mx"},
+  {n:["Beneleit Móvil"],u:"https://beneleit.mx/consultalineas",p:"beneleit.mx"},
+  {n:["Bestel","Cablecom"],u:"https://facturacion.bestel.com.mx",p:"bestel.com.mx"},
+  {n:["Celsfi"],u:"https://vinculacion.celfi.com.mx/buscar",p:"celfi.com.mx"},
+  {n:["Chedraui Móvil"],u:"https://vinculatulinea.com/Chedrauimovil",p:"vinculatulinea.com"},
+  {n:["Dalefon","Dalefon / IPB"],u:"https://www.dalefon.mx/vinculatulinea",p:"dalefon.mx"},
+  {n:["Dialo"],u:"https://dialo.mx/vinculatulinea",p:"dialo.mx"},
+  {n:["Exis"],u:"https://www.exis.mx/vinculatulinea",p:"exis.mx"},
+  {n:["Freedompop"],u:"https://vinculatulinea.com/Freedompop",p:"vinculatulinea.com"},
+  {n:["IENTC Móvil"],u:"https://movilidad.ientc.net/vinculatulinea",p:"ientc.net"},
+  {n:["Infynit"],u:"https://vinculate.infynit.mx",p:"infynit.mx"},
+  {n:["Miio"],u:"https://miio.com.mx/telefonia-registro.html",p:"miio.com.mx"},
+  {n:["MMXC Móvil"],u:"https://vinculatulinea.mmxcmovil.com.mx",p:"mmxcmovil.com.mx"},
+  {n:["Mosi"],u:"https://vinculacion.mosi.mx/vinculatulinea",p:"mosi.mx"},
+  {n:["Nextor Móvil"],u:"https://vinculacion.nextormovil.mx",p:"nextormovil.mx"},
+  {n:["OUI"],u:"https://vinculatulinea.com/oui",p:"vinculatulinea.com"},
+  {n:["Sistcomp"],u:"https://vinculatulinea.sistcomp.net",p:"sistcomp.net"},
+  {n:["Uber Cel"],u:"https://vinculatulinea.com/Ubercel",p:"vinculatulinea.com"},
+  {n:["Viral Cel"],u:"https://www.viralcel.com/vinculacion",p:"viralcel.com"},
+  {n:["Weex"],u:"https://weex.mx/vinculatulinea.html",p:"weex.mx"},
+  {n:["Yo Mobile"],u:"https://yo-mobile-mx.webflow.io/verification",p:"yo-mobile-mx.webflow.io"},
+  {n:["Yobi Telecom"],u:"https://vinculatulinea.com/YobiTelecom",p:"vinculatulinea.com"},
+];
+const LS="curp_checker_v2";
+let chk={},fil="pendientes";
+function load(){try{const d=JSON.parse(localStorage.getItem(LS)||"{}");chk=d.chk||{};}catch(e){}}
+function save(){
+  try{localStorage.setItem(LS,JSON.stringify({chk}));}catch(e){}
+  const el=document.getElementById("sv");
+  el.textContent="Progreso guardado";
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.textContent="",2000);
+}
+function rst(){if(!confirm("¿Borrar todo el progreso?"))return;chk={};try{localStorage.removeItem(LS);}catch(e){}render();}
+function sf(f,btn){fil=f;document.querySelectorAll(".filters button").forEach(b=>b.classList.remove("on"));btn.classList.add("on");render();}
+function tog(i){
+  chk[i]=!chk[i];save();upStats();
+  const c=document.getElementById("c"+i);if(!c)return;
+  c.classList.toggle("chk",!!chk[i]);
+  c.querySelector("input").checked=!!chk[i];
+  if((fil==="pendientes"&&chk[i])||(fil==="revisadas"&&!chk[i])){
+    c.classList.add("fade");setTimeout(()=>render(),450);
+  }
+}
+function upStats(){
+  const r=Object.values(chk).filter(Boolean).length;
+  document.getElementById("sT").textContent=G.length;
+  document.getElementById("sR").textContent=r;
+  document.getElementById("sP").textContent=G.length-r;
+}
+function render(){
+  upStats();
+  const q=(document.getElementById("q").value||"").toLowerCase();
+  const items=G.map((g,i)=>({g,i})).filter(({g,i})=>{
+    const ms=!q||g.n.some(n=>n.toLowerCase().includes(q))||(g.p||"").includes(q);
+    const mf=fil==="todas"?true:fil==="populares"?!!g.pop:fil==="pendientes"?!chk[i]:!!chk[i];
+    return ms&&mf;
+  }).sort((a,b)=>{
+    if(a.g.pop&&!b.g.pop)return -1;if(!a.g.pop&&b.g.pop)return 1;
+    return a.g.n[0].localeCompare(b.g.n[0],"es");
+  });
+  if(!items.length){document.getElementById("list").innerHTML='<div class="empty">Sin resultados.</div>';return;}
+  document.getElementById("list").innerHTML=items.map(({g,i})=>{
+    const ic=!!chk[i],ig=g.n.length>1;
+    const main=g.big?"Altán Redes — plataforma compartida":g.n[0];
+    const sub=g.big?g.n.slice(1,7).join(", ")+(g.n.length>7?" +"+(g.n.length-7)+" más":""):ig?g.n.slice(1).join(", "):"";
+    const badge=g.pop?'<span class="badge bp">Popular</span>':(ig||g.big)?'<span class="badge bg">'+(g.big?g.n.length-1:g.n.length)+' ops.</span>':'<span class="badge bs">Operadora</span>';
+    return `<div class="card${ic?" chk":""}" id="c${i}">
+      <input type="checkbox"${ic?" checked":""} onchange="tog(${i})" />
+      <div class="info">
+        <div class="main">${main}</div>
+        ${sub?`<div class="subs">${sub}</div>`:""}
+        ${g.p?`<div class="plat">${g.p}</div>`:""}
+      </div>
+      ${badge}
+      <a class="link" href="${g.u}" target="_blank" rel="noopener">Ir al portal</a>
+    </div>`;
+  }).join("");
+}
+load();render();
+document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Escape"){e.target.value="";render();}});
+</script>
+</body>
+</html>
